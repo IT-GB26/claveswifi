@@ -393,17 +393,21 @@
       });
     }
 
-    function enviarWhatsApp(ssid, pass, ubicacion) {
-      const texto = 
-`*Tecnologia de la informacion*
+   function enviarWhatsApp(ssid, pass, ubicacion) {
+  // Limpia si el usuario escribió por error palabras como "Password:", "Clave:", etc.
+  const claveLimpia = pass
+    .replace(/^(password|contraseña|clave|pass)[\s:]+/i, '')
+    .trim();
+
+  const texto = 
+`*Tecnología de la Información*
 *Nombre de red:* ${ssid}
-*Contraseña:* ${pass}
+*Contraseña:* ${claveLimpia}
 *Ubicación:* ${ubicacion}`;
 
-      const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-      window.open(urlWhatsApp, '_blank');
-    }
-
+  const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+  window.open(urlWhatsApp, '_blank');
+}
     function guardarYEnviarWhatsApp() {
       const ssid = document.getElementById('add-wifi-ssid').value.trim();
       const pass = document.getElementById('add-wifi-pass').value.trim();
