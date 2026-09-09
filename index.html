@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal WiFi - Tecnologías de la Información</title>
+  <!-- Generador de QR para la imagen de conexión -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --sidebar-bg: #0f172a;
+      --sidebar-active: #2563eb;
+      --sidebar-text: #94a3b8;
+      --sidebar-hover: #1e293b;
+      --bg-body: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #16a34a;
+      --whatsapp: #25d366;
+      --whatsapp-hover: #1ebd58;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+    body { background-color: var(--bg-body); color: var(--text-main); display: flex; min-height: 100vh; }
+
+    /* BARRA LATERAL IZQUIERDA */
+    aside.sidebar {
+      width: 260px; background-color: var(--sidebar-bg); color: #ffffff;
+      display: flex; flex-direction: column; flex-shrink: 0; padding: 24px 16px;
+    }
+    .sidebar-brand {
+      font-size: 1.15rem; font-weight: 800; display: flex; align-items: center;
+      gap: 10px; margin-bottom: 24px; padding: 0 8px; color: #ffffff;
+      line-height: 1.3;
+    }
+    .sidebar-brand small { font-size: 0.75rem; color: #94a3b8; font-weight: 500; display: block; }
+    .nav-section-title {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px;
+      color: #64748b; margin: 14px 0 6px 12px; font-weight: 700;
+    }
+    .nav-menu { display: flex; flex-direction: column; gap: 6px; list-style: none; }
+    .nav-item button {
+      width: 100%; background: transparent; border: none; color: var(--sidebar-text);
+      padding: 12px 14px; border-radius: var(--radius); font-size: 0.92rem;
+      font-weight: 600; display: flex; align-items: center; gap: 10px;
+      cursor: pointer; text-align: left; transition: all 0.2s ease;
+    }
+    .nav-item button:hover { background-color: var(--sidebar-hover); color: #ffffff; }
+    .nav-item button.active { background-color: var(--sidebar-active); color: #ffffff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    .admin-pill { background: #334155; font-size: 0.7rem; padding: 2px 7px; border-radius: 999px; margin-left: auto; font-weight: 600; }
+
+    .sidebar-footer {
+      margin-top: auto; padding: 16px 8px 0; border-top: 1px solid #1e293b;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--sidebar-text); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #64748b; }
+    .status-dot.active { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+
+    /* CONTENIDO DERECHO */
+    main.main-content { flex: 1; padding: 32px; overflow-y: auto; max-width: 1200px; }
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .page-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); }
+    .page-desc { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+    .search-box { display: flex; gap: 8px; background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; width: 280px; }
+    .search-box input { border: none; outline: none; width: 100%; font-size: 0.9rem; }
+
+    /* PANELES Y TARJETAS */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 24px; margin-bottom: 24px; }
+    .card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    /* FORMULARIOS */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="text"], input[type="password"] {
+      padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.2s ease; background-color: #fafbfc;
+    }
+    input:focus { border-color: var(--accent); background-color: #ffffff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+    /* BOTONES */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px;
+      border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-primary { background-color: var(--accent); color: #ffffff; }
+    .btn-primary:hover { background-color: var(--accent-hover); }
+    .btn-whatsapp { background-color: var(--whatsapp); color: #ffffff; }
+    .btn-whatsapp:hover { background-color: var(--whatsapp-hover); }
+    .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+    .btn-outline:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .btn-danger { background-color: #fee2e2; color: var(--danger); }
+    .btn-danger:hover { background-color: #fecaca; }
+
+    /* GRID DE ITEMS */
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+    .item-card {
+      background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);
+      box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+    }
+    .detail-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #f1f5f9; }
+    .password-mask { font-family: monospace; font-weight: 700; letter-spacing: 1px; font-size: 0.95rem; }
+    .badge-location {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600;
+      border-radius: 999px; background: #eff6ff; color: #1d4ed8; width: fit-content;
+    }
+
+    .admin-subnav { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 8px; overflow-x: auto; }
+    .admin-tab-btn { padding: 8px 16px; background: transparent; border: none; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px; }
+    .admin-tab-btn.active { background: #e2e8f0; color: var(--text-main); }
+
+    /* Contenedores invisibles para generación de imagen QR */
+    #wifi-canvas { display: none; }
+    #qr-temp { display: none; }
+
+    .toast-msg {
+      position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: white;
+      padding: 12px 20px; border-radius: 8px; font-size: 0.9rem; z-index: 9999;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); display: none;
+    }
+
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      aside.sidebar { width: 100%; padding: 16px; }
+      .nav-menu { flex-direction: row; overflow-x: auto; }
+      .nav-section-title { display: none; }
+      main.main-content { padding: 16px; }
+      .search-box { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA LATERAL -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span>📶</span>
+      <div>
+        Portal Claves WiFi
+        <small>Tecnología de la información</small>
+      </div>
+    </div>
+
+    <div class="nav-section-title">Navegación</div>
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <button id="btn-nav-wifi" class="active" onclick="switchNav('wifi')">
+          <span>📶</span> Redes WiFi
+        </button>
+      </li>
+      <li class="nav-item">
+        <button id="btn-nav-admin" onclick="switchNav('admin')">
+          <span>🔒</span> Panel Admin
+          <span id="admin-badge-indicator" class="admin-pill">PIN</span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="status-badge">
+        <span id="sync-dot" class="status-dot"></span>
+        <span id="sync-status-text">Cargando...</span>
+      </div>
+      <button id="btn-logout" class="btn btn-sm btn-outline" style="display:none; color:#f87171; border-color:#475569;" onclick="cerrarSesionAdmin()">
+        Cerrar Sesión Admin
+      </button>
+    </div>
+  </aside>
+
+  <!-- ÁREA DE CONTENIDO -->
+  <main class="main-content">
+
+    <!-- 1. VISTA: REDES WIFI (CONSULTA Y ENVÍO A WHATSAPP) -->
+    <div id="view-wifi" class="tab-panel active">
+      <div class="top-header">
+        <div>
+          <h1 class="page-title">Redes WiFi Disponibles</h1>
+          <p class="page-desc">Consulta claves, comparte a WhatsApp o descarga la imagen con código QR.</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="recargarDesdeGoogleSheets()">🔄 Sincronizar</button>
+          <div class="search-box">
+            <span>🔍</span>
+            <input type="text" placeholder="Buscar por red o ubicación..." oninput="filtrarWifi(this.value)">
+          </div>
+        </div>
+      </div>
+
+      <div id="grid-wifi-publico" class="items-grid"></div>
+    </div>
+
+    <!-- 2. SECCIÓN ADMINISTRADOR -->
+    <div id="view-admin" class="tab-panel">
+
+      <!-- LOGIN ADMIN -->
+      <div id="admin-login-box" class="card" style="max-width: 440px; margin: 40px auto; text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">🔐</div>
+        <h2 class="card-title" style="justify-content: center;">Acceso de Administrador</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 20px;">
+          Ingresa tu PIN para registrar nuevas redes WiFi o modificar contraseñas.
+        </p>
+        <form onsubmit="autenticarAdmin(event)">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <input type="password" id="admin-pin-input" placeholder="PIN (Por defecto: 1234)" style="text-align: center; font-size: 1.1rem; letter-spacing: 2px;" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar al Panel</button>
+        </form>
+        <small style="color:var(--text-muted); display:block; margin-top: 14px;">PIN inicial: <strong>1234</strong></small>
+      </div>
+
+      <!-- DASHBOARD ADMIN DESBLOQUEADO -->
+      <div id="admin-dashboard-box" style="display: none;">
+        <div class="top-header">
+          <div>
+            <h1 class="page-title">Panel de Administración WiFi</h1>
+            <p class="page-desc">Ingreso de credenciales, envío inmediato a WhatsApp y cambio de claves.</p>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="cerrarSesionAdmin()">🚪 Salir de Admin</button>
+        </div>
+
+        <div class="admin-subnav">
+          <button class="admin-tab-btn active" onclick="switchAdminTab('form-wifi-tab')">➕ Registrar Nueva Red WiFi</button>
+          <button class="admin-tab-btn" onclick="switchAdminTab('claves-wifi-tab')">✏️ Modificar Contraseñas</button>
+          <button class="admin-tab-btn" onclick="switchAdminTab('ajustes-tab')">⚙️ Ajustes & Sheets</button>
+        </div>
+
+        <!-- FORMULARIO DE INGRESO DE RED CON ENVÍO INMEDIATO -->
+        <div id="admin-sub-nuevo" class="card">
+          <h2 class="card-title"><span>📶</span> Nueva Red WiFi</h2>
+          <form id="form-wifi-admin" onsubmit="adminGuardarWifi(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nombre de la Red (SSID)</label>
+                <input type="text" id="add-wifi-ssid" placeholder="Ej. TI_Principal_5G" required>
+              </div>
+              <div class="form-group">
+                <label>Contraseña</label>
+                <input type="text" id="add-wifi-pass" placeholder="Ingresa la clave de acceso" required>
+              </div>
+              <div class="form-group">
+                <label>Ubicación / Sector</label>
+                <input type="text" id="add-wifi-ubicacion" placeholder="Ej. Sala de Servidores, Piso 2" required>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 8px;">
+              <button type="submit" class="btn btn-primary">💾 Guardar Red WiFi</button>
+              <button type="button" class="btn btn-whatsapp" onclick="guardarYEnviarWhatsApp()">
+                📲 Guardar y Enviar a WhatsApp
+              </button>
+              <button type="button" class="btn btn-outline" onclick="guardarYDescargarFichaWifi()">
+                🖼️ Guardar y Descargar Imagen (Ficha QR)
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- SUBTAB MODIFICAR CLAVES -->
+        <div id="admin-sub-claves" class="card" style="display:none;">
+          <h2 class="card-title"><span>✏️</span> Modificar Contraseñas Existentes</h2>
+          <div id="lista-cambio-claves-wifi" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+
+        <!-- SUBTAB AJUSTES Y GOOGLE SHEETS -->
+        <div id="admin-sub-ajustes" class="card" style="display:none;">
+          <h2 class="card-title"><span>📊</span> Conexión con Google Sheets (Excel en la nube)</h2>
+          <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom: 12px;">
+            Coloca aquí la URL de tu Google Apps Script si deseas que se guarde en tu hoja de cálculo:
+          </p>
+          <div style="display:flex; gap:8px; margin-bottom: 24px;">
+            <input type="text" id="input-sheets-webhook" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;">
+            <button type="button" class="btn btn-primary" onclick="guardarUrlWebhook()">Guardar URL</button>
+          </div>
+
+          <h2 class="card-title"><span>🔒</span> Cambio de PIN de Administrador</h2>
+          <form onsubmit="cambiarPinAdmin(event)" style="max-width: 440px;">
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label>PIN Actual:</label>
+              <input type="password" id="pin-actual" placeholder="Ingresa PIN actual" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label>Nuevo PIN:</label>
+              <input type="password" id="nuevo-pin" placeholder="Mínimo 4 caracteres" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label>Confirmar Nuevo PIN:</label>
+              <input type="password" id="confirm-pin" placeholder="Repite el nuevo PIN" required>
+            </div>
+            <button type="submit" class="btn btn-outline">Actualizar PIN</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <canvas id="wifi-canvas" width="600" height="750"></canvas>
+  <div id="qr-temp"></div>
+  <div id="toast" class="toast-msg">Notificación</div>
+
+  <script>
+    let adminAutenticado = false;
+    let pinMaestro = localStorage.getItem('admin_pin') || "1234";
+    let webhookSheetsUrl = localStorage.getItem('sheets_webhook_url') || "";
+    let wifis = JSON.parse(localStorage.getItem('db_wifis')) || [];
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    // NAVEGACIÓN
+    function switchNav(tab) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-menu button').forEach(b => b.classList.remove('active'));
+      document.getElementById('view-' + tab).classList.add('active');
+      document.getElementById('btn-nav-' + tab).classList.add('active');
+      if (tab === 'wifi') renderWifi();
+      if (tab === 'admin' && adminAutenticado) renderAdminDashboard();
+    }
+
+    function switchAdminTab(subTab) {
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('admin-sub-nuevo').style.display = 'none';
+      document.getElementById('admin-sub-claves').style.display = 'none';
+      document.getElementById('admin-sub-ajustes').style.display = 'none';
+
+      if (subTab === 'form-wifi-tab') {
+        document.querySelector('.admin-subnav button:nth-child(1)').classList.add('active');
+        document.getElementById('admin-sub-nuevo').style.display = 'block';
+      } else if (subTab === 'claves-wifi-tab') {
+        document.querySelector('.admin-subnav button:nth-child(2)').classList.add('active');
+        document.getElementById('admin-sub-claves').style.display = 'block';
+        renderListaCambioClavesWifi();
+      } else {
+        document.querySelector('.admin-subnav button:nth-child(3)').classList.add('active');
+        document.getElementById('admin-sub-ajustes').style.display = 'block';
+        document.getElementById('input-sheets-webhook').value = webhookSheetsUrl;
+      }
+    }
+
+    // CONEXIÓN CON GOOGLE SHEETS
+    function guardarUrlWebhook() {
+      const url = document.getElementById('input-sheets-webhook').value.trim();
+      webhookSheetsUrl = url;
+      localStorage.setItem('sheets_webhook_url', url);
+      mostrarToast("URL guardada. Conectando...");
+      recargarDesdeGoogleSheets();
+    }
+
+    function recargarDesdeGoogleSheets() {
+      if (!webhookSheetsUrl) {
+        document.getElementById('sync-status-text').textContent = "Modo Local";
+        document.getElementById('sync-dot').classList.remove('active');
+        return;
+      }
+      document.getElementById('sync-status-text').textContent = "Sincronizando...";
+      fetch(webhookSheetsUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "ok" && data.wifis) {
+            wifis = data.wifis;
+            localStorage.setItem('db_wifis', JSON.stringify(wifis));
+            document.getElementById('sync-status-text').textContent = "Sheets Conectado";
+            document.getElementById('sync-dot').classList.add('active');
+            renderWifi();
+            mostrarToast("¡Redes sincronizadas desde Google Sheets!");
+          }
+        })
+        .catch(() => {
+          document.getElementById('sync-status-text').textContent = "Offline (Local)";
+        });
+    }
+
+    function enviarAccionSheets(action, payload, callback) {
+      if (!webhookSheetsUrl) {
+        if (callback) callback();
+        return;
+      }
+      fetch(webhookSheetsUrl, {
+        method: "POST",
+        body: JSON.stringify({ action: action, data: payload })
+      })
+      .then(res => res.json())
+      .then(res => { if (callback) callback(res); })
+      .catch(() => { if (callback) callback(); });
+    }
+
+    // FUNCIÓN PARA ENVIAR A WHATSAPP CON EL FORMATO EXACTO SOLICITADO
+    function enviarWhatsApp(ssid, pass, ubicacion) {
+      const texto = 
+`*Tecnologia de la informacion*
+*Nombre de red:* ${ssid}
+*Contraseña:* ${pass}
+*Ubicación:* ${ubicacion}`;
+
+      const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+      window.open(urlWhatsApp, '_blank');
+    }
+
+    // GUARDAR Y ENVIAR A WHATSAPP DIRECTAMENTE DESDE EL FORMULARIO
+    function guardarYEnviarWhatsApp() {
+      const ssid = document.getElementById('add-wifi-ssid').value.trim();
+      const pass = document.getElementById('add-wifi-pass').value.trim();
+      const ubicacion = document.getElementById('add-wifi-ubicacion').value.trim();
+
+      if (!ssid || !pass || !ubicacion) {
+        alert("Por favor completa el nombre de red, contraseña y ubicación.");
+        return;
+      }
+
+      const nueva = { id: Date.now(), ssid, pass, ubicacion };
+      wifis.push(nueva);
+      localStorage.setItem('db_wifis', JSON.stringify(wifis));
+      enviarAccionSheets("guardar_wifi", nueva);
+
+      document.getElementById('form-wifi-admin').reset();
+      renderWifi();
+      
+      // Abre WhatsApp de inmediato
+      enviarWhatsApp(ssid, pass, ubicacion);
+    }
+
+    // GUARDAR Y DESCARGAR IMAGEN QR
+    function guardarYDescargarFichaWifi() {
+      const ssid = document.getElementById('add-wifi-ssid').value.trim();
+      const pass = document.getElementById('add-wifi-pass').value.trim();
+      const ubicacion = document.getElementById('add-wifi-ubicacion').value.trim();
+
+      if (!ssid || !pass || !ubicacion) {
+        alert("Por favor completa todos los campos.");
+        return;
+      }
+
+      const nueva = { id: Date.now(), ssid, pass, ubicacion };
+      wifis.push(nueva);
+      localStorage.setItem('db_wifis', JSON.stringify(wifis));
+      enviarAccionSheets("guardar_wifi", nueva);
+
+      descargarFichaImagenWifi(ssid, pass, ubicacion);
+      document.getElementById('form-wifi-admin').reset();
+      renderWifi();
+    }
+
+    function adminGuardarWifi(e) {
+      e.preventDefault();
+      const ssid = document.getElementById('add-wifi-ssid').value.trim();
+      const pass = document.getElementById('add-wifi-pass').value.trim();
+      const ubicacion = document.getElementById('add-wifi-ubicacion').value.trim();
+
+      const nueva = { id: Date.now(), ssid, pass, ubicacion };
+      wifis.push(nueva);
+      localStorage.setItem('db_wifis', JSON.stringify(wifis));
+      enviarAccionSheets("guardar_wifi", nueva);
+
+      document.getElementById('form-wifi-admin').reset();
+      mostrarToast("¡Red WiFi guardada!");
+      renderWifi();
+    }
+
+    // GENERADOR DE IMAGEN (CANVAS)
+    function descargarFichaImagenWifi(ssid, pass, ubicacion) {
+      const canvas = document.getElementById('wifi-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#0f172a');
+      gradient.addColorStop(1, '#1e293b');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('TECNOLOGÍA DE LA INFORMACIÓN', canvas.width / 2, 60);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '16px sans-serif';
+      ctx.fillText('Acceso a Red Wi-Fi', canvas.width / 2, 90);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(40, 120, 520, 580, 20);
+      ctx.fill();
+
+      const qrTemp = document.getElementById('qr-temp');
+      qrTemp.innerHTML = '';
+      const wifiString = `WIFI:T:WPA;S:${ssid};P:${pass};;`;
+
+      new QRCode(qrTemp, {
+        text: wifiString,
+        width: 220,
+        height: 220,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      setTimeout(() => {
+        const qrImg = qrTemp.querySelector('img');
+        if (qrImg) {
+          ctx.drawImage(qrImg, (canvas.width - 220) / 2, 160, 220, 220);
+        }
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('NOMBRE DE LA RED (SSID)', canvas.width / 2, 430);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillText(ssid, canvas.width / 2, 465);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('CONTRASEÑA', canvas.width / 2, 520);
+
+        ctx.fillStyle = '#f1f5f9';
+        ctx.beginPath();
+        ctx.roundRect(80, 535, 440, 50, 10);
+        ctx.fill();
+
+        ctx.fillStyle = '#1d4ed8';
+        ctx.font = 'bold 22px monospace';
+        ctx.fillText(pass, canvas.width / 2, 568);
+
+        ctx.fillStyle = '#475569';
+        ctx.font = '15px sans-serif';
+        ctx.fillText(`📍 Ubicación: ${ubicacion}`, canvas.width / 2, 630);
+
+        const link = document.createElement('a');
+        link.download = `WiFi_${ssid.replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }, 250);
+    }
+
+    // MODIFICAR CONTRASEÑAS
+    function renderListaCambioClavesWifi() {
+      const cont = document.getElementById('lista-cambio-claves-wifi');
+      if (wifis.length === 0) {
+        cont.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">No hay redes WiFi registradas.</p>`;
+        return;
+      }
+      cont.innerHTML = wifis.map(w => `
+        <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <strong style="font-size:0.95rem;">${w.ssid}</strong>
+            <span style="font-size:0.8rem; color:var(--text-muted); margin-left:8px;">📍 ${w.ubicacion}</span>
+            <div style="font-size:0.82rem; font-family:monospace; margin-top:4px;">Clave actual: <span>${w.pass}</span></div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-whatsapp btn-sm" onclick="enviarWhatsApp('${w.ssid}', '${w.pass}', '${w.ubicacion}')">📲 Enviar</button>
+            <button class="btn btn-outline btn-sm" onclick="editarClaveWifiPrompt('${w.id}')">✏️ Cambiar Clave</button>
+            <button class="btn btn-danger btn-sm" onclick="borrarWifi('${w.id}')">Eliminar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function editarClaveWifiPrompt(id) {
+      const red = wifis.find(w => String(w.id) === String(id));
+      if (!red) return;
+      const nuevaClave = prompt(`Nueva contraseña para la red "${red.ssid}":`, red.pass);
+      if (nuevaClave !== null && nuevaClave.trim() !== "") {
+        red.pass = nuevaClave.trim();
+        localStorage.setItem('db_wifis', JSON.stringify(wifis));
+        enviarAccionSheets("cambiar_pass_wifi", { id: red.id, nuevaPass: red.pass }, () => {
+          renderWifi();
+          renderListaCambioClavesWifi();
+          mostrarToast("¡Contraseña actualizada!");
+        });
+      }
+    }
+
+    function borrarWifi(id) {
+      if (!confirm("¿Deseas eliminar esta red WiFi?")) return;
+      wifis = wifis.filter(w => String(w.id) !== String(id));
+      localStorage.setItem('db_wifis', JSON.stringify(wifis));
+      renderWifi();
+      renderListaCambioClavesWifi();
+      mostrarToast("Red eliminada");
+    }
+
+    function toggleClave(id) {
+      const span = document.getElementById('pwd-' + id);
+      const btn = document.getElementById('btn-pwd-' + id);
+      if (span.dataset.hidden === "true") {
+        span.textContent = span.dataset.real;
+        span.dataset.hidden = "false";
+        btn.textContent = "Ocultar";
+      } else {
+        span.textContent = "••••••••••••";
+        span.dataset.hidden = "true";
+        btn.textContent = "Mostrar";
+      }
+    }
+
+    // RENDER PRINCIPAL DE TARJETAS WIFI CON BOTÓN "ENVIAR A WHATSAPP"
+    function renderWifi(lista = wifis) {
+      const cont = document.getElementById('grid-wifi-publico');
+      if (lista.length === 0) {
+        cont.innerHTML = `<p style="color:var(--text-muted); font-size:0.95rem;">No hay redes WiFi registradas aún.</p>`;
+        return;
+      }
+      cont.innerHTML = lista.map(w => `
+        <div class="item-card">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 8px;">
+              <h3 style="font-size:1.15rem; font-weight:700;">${w.ssid}</h3>
+              <span class="badge-location">📍 ${w.ubicacion}</span>
+            </div>
+            <div class="detail-row">
+              <div>
+                <span style="font-size:0.75rem; color:var(--text-muted); display:block; font-weight:600;">CONTRASEÑA</span>
+                <span id="pwd-${w.id}" class="password-mask" data-real="${w.pass}" data-hidden="true">••••••••••••</span>
+              </div>
+              <button type="button" id="btn-pwd-${w.id}" class="btn btn-outline btn-sm" onclick="toggleClave('${w.id}')">Mostrar</button>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:12px; gap:6px; flex-wrap:wrap;">
+            <!-- BOTÓN ENVIAR A WHATSAPP -->
+            <button class="btn btn-whatsapp btn-sm" onclick="enviarWhatsApp('${w.ssid}', '${w.pass}', '${w.ubicacion}')">
+              📲 Enviar a WhatsApp
+            </button>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="descargarFichaImagenWifi('${w.ssid}', '${w.pass}', '${w.ubicacion}')" title="Descargar Imagen QR">
+                🖼️ Ficha
+              </button>
+              ${adminAutenticado ? `
+                <button class="btn btn-outline btn-sm" onclick="editarClaveWifiPrompt('${w.id}')">Cambiar</button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filtrarWifi(txt) {
+      const q = txt.toLowerCase();
+      renderWifi(wifis.filter(w => (w.ssid && w.ssid.toLowerCase().includes(q)) || (w.ubicacion && w.ubicacion.toLowerCase().includes(q))));
+    }
+
+    // AUTENTICACIÓN Y PIN
+    function autenticarAdmin(e) {
+      e.preventDefault();
+      const pin = document.getElementById('admin-pin-input').value.trim();
+      if (pin === pinMaestro) {
+        adminAutenticado = true;
+        document.getElementById('admin-login-box').style.display = 'none';
+        document.getElementById('admin-dashboard-box').style.display = 'block';
+        document.getElementById('admin-badge-indicator').textContent = "ACTIVO";
+        document.getElementById('admin-badge-indicator').style.backgroundColor = "var(--success)";
+        document.getElementById('btn-logout').style.display = 'block';
+        document.getElementById('admin-pin-input').value = "";
+        renderWifi();
+      } else {
+        alert("PIN incorrecto.");
+      }
+    }
+
+    function cerrarSesionAdmin() {
+      adminAutenticado = false;
+      document.getElementById('admin-login-box').style.display = 'block';
+      document.getElementById('admin-dashboard-box').style.display = 'none';
+      document.getElementById('admin-badge-indicator').textContent = "PIN";
+      document.getElementById('admin-badge-indicator').style.backgroundColor = "#334155";
+      document.getElementById('btn-logout').style.display = 'none';
+      switchNav('wifi');
+      renderWifi();
+    }
+
+    function cambiarPinAdmin(e) {
+      e.preventDefault();
+      const act = document.getElementById('pin-actual').value.trim();
+      const nvo = document.getElementById('nuevo-pin').value.trim();
+      const cnf = document.getElementById('confirm-pin').value.trim();
+      if (act !== pinMaestro) { alert("PIN actual incorrecto."); return; }
+      if (nvo !== cnf) { alert("Los nuevos pines no coinciden."); return; }
+      if (nvo.length < 4) { alert("Mínimo 4 caracteres."); return; }
+
+      pinMaestro = nvo;
+      localStorage.setItem('admin_pin', pinMaestro);
+      alert("¡PIN actualizado!");
+      document.getElementById('pin-actual').value = "";
+      document.getElementById('nuevo-pin').value = "";
+      document.getElementById('confirm-pin').value = "";
+    }
+
+    // Inicializar
+    renderWifi();
+    recargarDesdeGoogleSheets();
+  </script>
+</body>
+</html>
