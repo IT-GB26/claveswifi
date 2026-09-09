@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal WiFi - Tecnologías de la Información</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Generador QR robusto e instantáneo -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
     :root {
       --sidebar-bg: #0f172a;
@@ -115,8 +116,8 @@
     .admin-tab-btn { padding: 8px 16px; background: transparent; border: none; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px; }
     .admin-tab-btn.active { background: #e2e8f0; color: var(--text-main); }
 
+    /* Canvas invisible para componer la imagen */
     #wifi-canvas { display: none; }
-    #qr-temp { display: none; }
 
     .toast-msg {
       position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: white;
@@ -247,7 +248,7 @@
                 📲 Guardar y Enviar a WhatsApp
               </button>
               <button type="button" class="btn btn-outline" onclick="guardarYDescargarFichaWifi()">
-                🖼️ Guardar y Descargar Imagen (Ficha QR)
+                🖼️ Guardar y Descargar Ficha con QR
               </button>
             </div>
           </form>
@@ -291,7 +292,6 @@
   </main>
 
   <canvas id="wifi-canvas" width="600" height="750"></canvas>
-  <div id="qr-temp"></div>
   <div id="toast" class="toast-msg">Notificación</div>
 
   <script>
@@ -369,7 +369,7 @@
         console.error("Error al conectar con Apps Script:", err);
         text.textContent = "Error permisos Sheets";
         dot.className = "status-dot error";
-        mostrarToast("No se pudo conectar. Verifica permisos en Apps Script.");
+        mostrarToast("Revisa la implementación en Apps Script.");
       });
     }
 
@@ -459,16 +459,19 @@
       });
     }
 
+    // GENERADOR DE FICHA CON QR INSTANTÁNEO (QRIOUS)
     function descargarFichaImagenWifi(ssid, pass, ubicacion) {
       const canvas = document.getElementById('wifi-canvas');
       const ctx = canvas.getContext('2d');
 
+      // 1. Fondo elegante oscuro
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
       gradient.addColorStop(0, '#0f172a');
       gradient.addColorStop(1, '#1e293b');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // 2. Encabezado
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 26px sans-serif';
       ctx.textAlign = 'center';
@@ -478,61 +481,61 @@
       ctx.font = '16px sans-serif';
       ctx.fillText('Acceso a Red Wi-Fi', canvas.width / 2, 90);
 
+      // 3. Tarjeta central blanca
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.roundRect(40, 120, 520, 580, 20);
       ctx.fill();
 
-      const qrTemp = document.getElementById('qr-temp');
-      qrTemp.innerHTML = '';
+      // 4. Generación sincrónica e inmediata del QR
       const wifiString = `WIFI:T:WPA;S:${ssid};P:${pass};;`;
-
-      new QRCode(qrTemp, {
-        text: wifiString,
-        width: 220,
-        height: 220,
-        colorDark: "#0f172a",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+      const qr = new QRious({
+        value: wifiString,
+        size: 220,
+        level: 'H'
       });
 
-      setTimeout(() => {
-        const qrImg = qrTemp.querySelector('img');
-        if (qrImg) {
-          ctx.drawImage(qrImg, (canvas.width - 220) / 2, 160, 220, 220);
-        }
+      // Dibujar QR directamente en el Canvas principal
+      ctx.drawImage(qr.image, (canvas.width - 220) / 2, 160);
 
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#64748b';
-        ctx.font = 'bold 14px sans-serif';
-        ctx.fillText('NOMBRE DE LA RED (SSID)', canvas.width / 2, 430);
+      // 5. Textos informativos
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('NOMBRE DE LA RED (SSID)', canvas.width / 2, 430);
 
-        ctx.fillStyle = '#0f172a';
-        ctx.font = 'bold 24px sans-serif';
-        ctx.fillText(ssid, canvas.width / 2, 465);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.fillText(ssid, canvas.width / 2, 465);
 
-        ctx.fillStyle = '#64748b';
-        ctx.font = 'bold 14px sans-serif';
-        ctx.fillText('CONTRASEÑA', canvas.width / 2, 520);
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('CONTRASEÑA', canvas.width / 2, 520);
 
-        ctx.fillStyle = '#f1f5f9';
-        ctx.beginPath();
-        ctx.roundRect(80, 535, 440, 50, 10);
-        ctx.fill();
+      // Caja para contraseña
+      ctx.fillStyle = '#f1f5f9';
+      ctx.beginPath();
+      ctx.roundRect(80, 535, 440, 50, 10);
+      ctx.fill();
 
-        ctx.fillStyle = '#1d4ed8';
-        ctx.font = 'bold 22px monospace';
-        ctx.fillText(pass, canvas.width / 2, 568);
+      ctx.fillStyle = '#1d4ed8';
+      ctx.font = 'bold 22px monospace';
+      ctx.fillText(pass, canvas.width / 2, 568);
 
-        ctx.fillStyle = '#475569';
-        ctx.font = '15px sans-serif';
-        ctx.fillText(`📍 Ubicación: ${ubicacion}`, canvas.width / 2, 630);
+      // Ubicación
+      ctx.fillStyle = '#475569';
+      ctx.font = '15px sans-serif';
+      ctx.fillText(`📍 Ubicación: ${ubicacion}`, canvas.width / 2, 630);
 
-        const link = document.createElement('a');
-        link.download = `WiFi_${ssid.replace(/\s+/g, '_')}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }, 250);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('Apunta la cámara de tu celular al código QR para conectar', canvas.width / 2, 665);
+
+      // Descarga inmediata del archivo PNG
+      const link = document.createElement('a');
+      link.download = `WiFi_${ssid.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
 
     function renderListaCambioClavesWifi() {
@@ -611,7 +614,7 @@
             </button>
             <div style="display:flex; gap:6px;">
               <button class="btn btn-outline btn-sm" onclick="descargarFichaImagenWifi('${w.ssid}', '${w.pass}', '${w.ubicacion}')" title="Descargar Imagen QR">
-                🖼️ Ficha
+                🖼️ Ficha QR
               </button>
               ${adminAutenticado ? `
                 <button class="btn btn-outline btn-sm" onclick="editarClaveWifiPrompt('${w.id}')">Cambiar</button>
