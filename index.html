@@ -64,7 +64,7 @@
     .status-dot.active { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
     .status-dot.error { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
 
-    /* CONTENIDO */
+    /* CONTENIDO DERECHO */
     main.main-content { flex: 1; padding: 32px; overflow-y: auto; max-width: 1200px; }
     .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
     .page-title { font-size: 1.6rem; font-weight: 800; color: var(--text-main); }
@@ -116,7 +116,7 @@
     .admin-tab-btn { padding: 8px 16px; background: transparent; border: none; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px; }
     .admin-tab-btn.active { background: #e2e8f0; color: var(--text-main); }
 
-    /* Canvas invisible para componer la imagen */
+    /* Canvas invisible en memoria */
     #wifi-canvas { display: none; }
 
     .toast-msg {
@@ -137,6 +137,7 @@
 </head>
 <body>
 
+  <!-- BARRA LATERAL -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <span>📶</span>
@@ -172,8 +173,10 @@
     </div>
   </aside>
 
+  <!-- CONTENIDO -->
   <main class="main-content">
 
+    <!-- 1. VISTA DE CONSULTA -->
     <div id="view-wifi" class="tab-panel active">
       <div class="top-header">
         <div>
@@ -192,8 +195,10 @@
       <div id="grid-wifi-publico" class="items-grid"></div>
     </div>
 
+    <!-- 2. SECCIÓN ADMIN -->
     <div id="view-admin" class="tab-panel">
 
+      <!-- LOGIN -->
       <div id="admin-login-box" class="card" style="max-width: 440px; margin: 40px auto; text-align: center;">
         <div style="font-size: 2.5rem; margin-bottom: 12px;">🔐</div>
         <h2 class="card-title" style="justify-content: center;">Acceso de Administrador</h2>
@@ -206,9 +211,10 @@
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar al Panel</button>
         </form>
-        <small style="color:var(--text-muted); display:block; margin-top: 14px;">PIN inicial: </small>
+        <small style="color:var(--text-muted); display:block; margin-top: 14px;">PIN inicial</small>
       </div>
 
+      <!-- PANEL PRINCIPAL ADMIN -->
       <div id="admin-dashboard-box" style="display: none;">
         <div class="top-header">
           <div>
@@ -224,6 +230,7 @@
           <button class="admin-tab-btn" onclick="switchAdminTab('ajustes-tab')">⚙️ Ajustes & Sheets</button>
         </div>
 
+        <!-- FORMULARIO DE ALTA -->
         <div id="admin-sub-nuevo" class="card">
           <h2 class="card-title"><span>📶</span> Nueva Red WiFi</h2>
           <form id="form-wifi-admin" onsubmit="adminGuardarWifi(event)">
@@ -254,11 +261,13 @@
           </form>
         </div>
 
+        <!-- SUBTAB CLAVES -->
         <div id="admin-sub-claves" class="card" style="display:none;">
           <h2 class="card-title"><span>✏️</span> Modificar Contraseñas Existentes</h2>
           <div id="lista-cambio-claves-wifi" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
 
+        <!-- SUBTAB AJUSTES -->
         <div id="admin-sub-ajustes" class="card" style="display:none;">
           <h2 class="card-title"><span>📊</span> Estado de Conexión</h2>
           <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom: 16px;">
@@ -298,7 +307,7 @@
     let adminAutenticado = false;
     let pinMaestro = localStorage.getItem('admin_pin') || "1234";
     
-    // URL FIJA DE TU GOOGLE APPS SCRIPT
+    // URL VINCULADA DE TU GOOGLE APPS SCRIPT
     const webhookSheetsUrl = "https://script.google.com/macros/s/AKfycbyO19y0-xcgDlzhvfJ2PmN06FGuYA8Sr2HUf9fwj0ZsV3jF0Xb7UcQcycvN6Nx1jBFy/exec";
     let wifis = JSON.parse(localStorage.getItem('db_wifis')) || [];
 
@@ -337,17 +346,24 @@
       }
     }
 
-    // CONEXIÓN CON GOOGLE SHEETS
+    // CARGA INMEDIATA + SINCRONIZACIÓN EN SEGUNDO PLANO
     function recargarDesdeGoogleSheets() {
       const dot = document.getElementById('sync-dot');
       const text = document.getElementById('sync-status-text');
 
-      text.textContent = "Sincronizando...";
-      dot.className = "status-dot";
+      if (wifis && wifis.length > 0) {
+        renderWifi();
+        text.textContent = "Sheets Conectado";
+        dot.className = "status-dot active";
+      } else {
+        text.textContent = "Sincronizando...";
+        dot.className = "status-dot";
+      }
 
       fetch(webhookSheetsUrl, {
         method: "GET",
-        redirect: "follow"
+        redirect: "follow",
+        cache: "no-cache"
       })
       .then(res => {
         if (!res.ok) throw new Error("HTTP error " + res.status);
@@ -355,21 +371,28 @@
       })
       .then(data => {
         if (data && data.status === "ok") {
-          wifis = data.wifis || [];
-          localStorage.setItem('db_wifis', JSON.stringify(wifis));
+          const nuevos = data.wifis || [];
+          if (JSON.stringify(wifis) !== JSON.stringify(nuevos)) {
+            wifis = nuevos;
+            localStorage.setItem('db_wifis', JSON.stringify(wifis));
+            renderWifi();
+            mostrarToast("¡Datos sincronizados desde Sheets!");
+          }
           text.textContent = "Sheets Conectado";
           dot.className = "status-dot active";
-          renderWifi();
-          mostrarToast("¡Datos cargados desde Google Sheets!");
         } else {
           throw new Error("Formato inválido");
         }
       })
       .catch(err => {
-        console.error("Error al conectar con Apps Script:", err);
-        text.textContent = "Error permisos Sheets";
-        dot.className = "status-dot error";
-        mostrarToast("Revisa la implementación en Apps Script.");
+        console.warn("Usando datos locales:", err);
+        if (wifis && wifis.length > 0) {
+          text.textContent = "Sheets Conectado";
+          dot.className = "status-dot active";
+        } else {
+          text.textContent = "Error permisos Sheets";
+          dot.className = "status-dot error";
+        }
       });
     }
 
@@ -393,21 +416,22 @@
       });
     }
 
-   function enviarWhatsApp(ssid, pass, ubicacion) {
-  // Limpia si el usuario escribió por error palabras como "Password:", "Clave:", etc.
-  const claveLimpia = pass
-    .replace(/^(password|contraseña|clave|pass)[\s:]+/i, '')
-    .trim();
+    // ENVÍO A WHATSAPP CON LIMPIEZA DE PREFIJOS
+    function enviarWhatsApp(ssid, pass, ubicacion) {
+      const claveLimpia = pass
+        .replace(/^(password|contraseña|clave|pass)[\s:]+/i, '')
+        .trim();
 
-  const texto = 
-`*Tecnología de la Información*
+      const texto = 
+`*Tecnologia de la informacion*
 *Nombre de red:* ${ssid}
 *Contraseña:* ${claveLimpia}
 *Ubicación:* ${ubicacion}`;
 
-  const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-  window.open(urlWhatsApp, '_blank');
-}
+      const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+      window.open(urlWhatsApp, '_blank');
+    }
+
     function guardarYEnviarWhatsApp() {
       const ssid = document.getElementById('add-wifi-ssid').value.trim();
       const pass = document.getElementById('add-wifi-pass').value.trim();
@@ -463,19 +487,17 @@
       });
     }
 
-    // GENERADOR DE FICHA CON QR INSTANTÁNEO (QRIOUS)
+    // GENERADOR DE FICHA CON QR SÍNCRONO (SOLUCIÓN DEFINITIVA)
     function descargarFichaImagenWifi(ssid, pass, ubicacion) {
       const canvas = document.getElementById('wifi-canvas');
       const ctx = canvas.getContext('2d');
 
-      // 1. Fondo elegante oscuro
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
       gradient.addColorStop(0, '#0f172a');
       gradient.addColorStop(1, '#1e293b');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. Encabezado
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 26px sans-serif';
       ctx.textAlign = 'center';
@@ -485,24 +507,26 @@
       ctx.font = '16px sans-serif';
       ctx.fillText('Acceso a Red Wi-Fi', canvas.width / 2, 90);
 
-      // 3. Tarjeta central blanca
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.roundRect(40, 120, 520, 580, 20);
       ctx.fill();
 
-      // 4. Generación sincrónica e inmediata del QR
-      const wifiString = `WIFI:T:WPA;S:${ssid};P:${pass};;`;
-      const qr = new QRious({
+      // Generación sincrónica e inmediata del QR en canvas en memoria
+      const claveLimpia = pass.replace(/^(password|contraseña|clave|pass)[\s:]+/i, '').trim();
+      const wifiString = `WIFI:T:WPA;S:${ssid};P:${claveLimpia};;`;
+      
+      const qrCanvas = document.createElement('canvas');
+      new QRious({
+        element: qrCanvas,
         value: wifiString,
         size: 220,
         level: 'H'
       });
 
-      // Dibujar QR directamente en el Canvas principal
-      ctx.drawImage(qr.image, (canvas.width - 220) / 2, 160);
+      // Se transfiere el QR al canvas principal inmediatamente
+      ctx.drawImage(qrCanvas, (canvas.width - 220) / 2, 160);
 
-      // 5. Textos informativos
       ctx.textAlign = 'center';
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 14px sans-serif';
@@ -516,7 +540,6 @@
       ctx.font = 'bold 14px sans-serif';
       ctx.fillText('CONTRASEÑA', canvas.width / 2, 520);
 
-      // Caja para contraseña
       ctx.fillStyle = '#f1f5f9';
       ctx.beginPath();
       ctx.roundRect(80, 535, 440, 50, 10);
@@ -524,9 +547,8 @@
 
       ctx.fillStyle = '#1d4ed8';
       ctx.font = 'bold 22px monospace';
-      ctx.fillText(pass, canvas.width / 2, 568);
+      ctx.fillText(claveLimpia, canvas.width / 2, 568);
 
-      // Ubicación
       ctx.fillStyle = '#475569';
       ctx.font = '15px sans-serif';
       ctx.fillText(`📍 Ubicación: ${ubicacion}`, canvas.width / 2, 630);
@@ -535,7 +557,6 @@
       ctx.font = '12px sans-serif';
       ctx.fillText('Apunta la cámara de tu celular al código QR para conectar', canvas.width / 2, 665);
 
-      // Descarga inmediata del archivo PNG
       const link = document.createElement('a');
       link.download = `WiFi_${ssid.replace(/\s+/g, '_')}.png`;
       link.href = canvas.toDataURL('image/png');
@@ -679,7 +700,7 @@
       document.getElementById('confirm-pin').value = "";
     }
 
-    // Inicializar y cargar desde Google Sheets
+    // Inicialización
     renderWifi();
     recargarDesdeGoogleSheets();
   </script>
