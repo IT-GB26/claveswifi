@@ -170,7 +170,7 @@
     <div class="sidebar-footer">
       <div class="status-badge">
         <span id="sync-dot" class="status-dot"></span>
-        <span id="sync-status-text">Cargando...</span>
+        <span id="sync-status-text">Conectando...</span>
       </div>
       <button id="btn-logout" class="btn btn-sm btn-outline" style="display:none; color:#f87171; border-color:#475569;" onclick="cerrarSesionAdmin()">
         Cerrar Sesión Admin
@@ -212,7 +212,7 @@
         </p>
         <form onsubmit="autenticarAdmin(event)">
           <div class="form-group" style="margin-bottom: 16px;">
-            <input type="password" id="admin-pin-input" placeholder="PIN " style="text-align: center; font-size: 1.1rem; letter-spacing: 2px;" required>
+            <input type="password" id="admin-pin-input" placeholder="PIN (Por defecto: 1234)" style="text-align: center; font-size: 1.1rem; letter-spacing: 2px;" required>
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar al Panel</button>
         </form>
@@ -276,11 +276,11 @@
         <div id="admin-sub-ajustes" class="card" style="display:none;">
           <h2 class="card-title"><span>📊</span> Conexión con Google Sheets (Excel en la nube)</h2>
           <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom: 12px;">
-            Coloca aquí la URL de tu Google Apps Script si deseas que se guarde en tu hoja de cálculo:
+            URL actualmente vinculada a tu Google Apps Script:
           </p>
           <div style="display:flex; gap:8px; margin-bottom: 24px;">
             <input type="text" id="input-sheets-webhook" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;">
-            <button type="button" class="btn btn-primary" onclick="guardarUrlWebhook()">Guardar URL</button>
+            <button type="button" class="btn btn-primary" onclick="guardarUrlWebhook()">Actualizar URL</button>
           </div>
 
           <h2 class="card-title"><span>🔒</span> Cambio de PIN de Administrador</h2>
@@ -313,7 +313,9 @@
   <script>
     let adminAutenticado = false;
     let pinMaestro = localStorage.getItem('admin_pin') || "1234";
-    let webhookSheetsUrl = localStorage.getItem('sheets_webhook_url') || "";
+    
+    // URL DE TU GOOGLE APPS SCRIPT INCORPORADA FIJA
+    let webhookSheetsUrl = localStorage.getItem('sheets_webhook_url') || "https://script.google.com/macros/s/AKfycbyO19y0-xcgDlzhvfJ2PmN06FGuYA8Sr2HUf9fwj0ZsV3jF0Xb7UcQcycvN6Nx1jBFy/exec";
     let wifis = JSON.parse(localStorage.getItem('db_wifis')) || [];
 
     function mostrarToast(msg) {
@@ -358,7 +360,7 @@
       const url = document.getElementById('input-sheets-webhook').value.trim();
       webhookSheetsUrl = url;
       localStorage.setItem('sheets_webhook_url', url);
-      mostrarToast("URL guardada. Conectando...");
+      mostrarToast("URL actualizada. Conectando...");
       recargarDesdeGoogleSheets();
     }
 
@@ -400,7 +402,7 @@
       .catch(() => { if (callback) callback(); });
     }
 
-    // FUNCIÓN PARA ENVIAR A WHATSAPP CON EL FORMATO EXACTO SOLICITADO
+    // ENVIAR A WHATSAPP
     function enviarWhatsApp(ssid, pass, ubicacion) {
       const texto = 
 `*Tecnologia de la informacion*
@@ -412,7 +414,6 @@
       window.open(urlWhatsApp, '_blank');
     }
 
-    // GUARDAR Y ENVIAR A WHATSAPP DIRECTAMENTE DESDE EL FORMULARIO
     function guardarYEnviarWhatsApp() {
       const ssid = document.getElementById('add-wifi-ssid').value.trim();
       const pass = document.getElementById('add-wifi-pass').value.trim();
@@ -430,12 +431,9 @@
 
       document.getElementById('form-wifi-admin').reset();
       renderWifi();
-      
-      // Abre WhatsApp de inmediato
       enviarWhatsApp(ssid, pass, ubicacion);
     }
 
-    // GUARDAR Y DESCARGAR IMAGEN QR
     function guardarYDescargarFichaWifi() {
       const ssid = document.getElementById('add-wifi-ssid').value.trim();
       const pass = document.getElementById('add-wifi-pass').value.trim();
@@ -633,7 +631,6 @@
             </div>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:12px; gap:6px; flex-wrap:wrap;">
-            <!-- BOTÓN ENVIAR A WHATSAPP -->
             <button class="btn btn-whatsapp btn-sm" onclick="enviarWhatsApp('${w.ssid}', '${w.pass}', '${w.ubicacion}')">
               📲 Enviar a WhatsApp
             </button>
